@@ -1,0 +1,81 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url = "http://files.minecraftforge.net/maven" }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+version = "1.12.2-1.0.0.0-SNAPSHOT"
+group = "com.jamieswhiteshirt" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "clothesline-hooks"
+
+sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "1.12.2-14.23.0.2493"
+    runDir = "run"
+
+    clientJvmArgs = serverJvmArgs = ["-Dfml.coreMods.load=$fmlCorePlugin"]
+
+    mappings = "snapshot_20170628"
+}
+
+jar {
+    manifest {
+        attributes 'FMLCorePlugin': fmlCorePlugin, 'Maven-Version': "${project.group}:${project.archivesBaseName}:${project.version}:core"
+    }
+}
+
+task signJar(type: SignJar, dependsOn: reobfJar) {
+    onlyIf {
+        project.hasProperty('keyStore')
+    }
+
+    inputFile = jar.archivePath
+    outputFile = jar.archivePath
+
+    keyStore = project.properties.keyStore
+    alias = project.properties.keyStoreAlias
+    storePass = project.properties.keyStorePass
+    keyPass = project.properties.keyStoreKeyPass
+}
+
+build.dependsOn signJar
+
+artifacts {
+    archives(signJar.outputFile) {
+        file signJar.outputFile
+        type 'jar'
+        builtBy signJar
+    }
+    archives sourceJar
+}
+
+project.ext.isReleaseVersion = !version.endsWith("-SNAPSHOT")
+
+signing {
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        repository(url: 'https://maven.jamieswhiteshirt.com/libs-release/') {
+            authentication(userName: project.properties.mavenUser, password: project.properties.mavenPassword)
+        }
+        snapshotRepository(url: 'https://maven.jamieswhiteshirt.com/libs-snapshot/') {
+            authentication(userName: project.properties.mavenUser, password: project.properties.mavenPassword)
+        }
+
+        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+    }
+}
