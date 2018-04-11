@@ -20,6 +20,7 @@ compileJava {
     sourceCompatibility = targetCompatibility = '1.8'
 }
 
+
 minecraft {
     version = "1.12.2-14.23.3.2658"
     runDir = "run"
@@ -31,7 +32,11 @@ minecraft {
 
 jar {
     manifest {
-        attributes 'FMLCorePlugin': fmlCorePlugin, 'Maven-Version': "${project.group}:${project.archivesBaseName}:${project.version}:core"
+        attributes([
+                'FMLCorePlugin': fmlCorePlugin,
+                'Maven-Artifact': "${project.group}:${project.archivesBaseName}:${project.version}",
+                'Timestamp': System.currentTimeMillis()
+        ])
     }
 }
 
