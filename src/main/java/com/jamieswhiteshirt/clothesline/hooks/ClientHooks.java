@@ -1,23 +1,14 @@
 package com.jamieswhiteshirt.clothesline.hooks;
 
-import com.jamieswhiteshirt.clothesline.hooks.api.IActivityMovement;
-import com.jamieswhiteshirt.clothesline.hooks.api.GetMouseOverEvent;
-import com.jamieswhiteshirt.clothesline.hooks.api.ClientStoppedUsingItemEvent;
-import com.jamieswhiteshirt.clothesline.hooks.api.RenderEntitiesEvent;
+import com.jamieswhiteshirt.clothesline.hooks.api.*;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.culling.ICamera;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class ClientHooks {
-    @CapabilityInject(IActivityMovement.class)
-    private static final Capability<IActivityMovement> ACTIVITY_MOVEMENT_CAPABILITY = null;
-
     public static void onGetMouseOver(float partialTicks) {
         MinecraftForge.EVENT_BUS.post(new GetMouseOverEvent(partialTicks));
     }
@@ -30,11 +21,11 @@ public class ClientHooks {
         return MinecraftForge.EVENT_BUS.post(new ClientStoppedUsingItemEvent());
     }
 
-    public static boolean isActivityPreventingMovement(EntityPlayerSP player) {
+    public static boolean isUseItemMovementSlowed(EntityPlayerSP player) {
         if (player.isHandActive()) {
-            ItemStack activeItemStack = player.getActiveItemStack();
-            IActivityMovement activityMovement = activeItemStack.getCapability(ACTIVITY_MOVEMENT_CAPABILITY, null);
-            return activityMovement == null || activityMovement.preventsMovement(player);
+            UseItemMovementEvent event = new UseItemMovementEvent(player, player.getActiveItemStack(), player.getItemInUseCount(), true);
+            MinecraftForge.EVENT_BUS.post(event);
+            return event.isMovementSlowed();
         }
         return false;
     }

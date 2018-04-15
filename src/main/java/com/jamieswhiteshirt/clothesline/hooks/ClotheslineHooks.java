@@ -1,15 +1,9 @@
 package com.jamieswhiteshirt.clothesline.hooks;
 
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import com.jamieswhiteshirt.clothesline.hooks.api.IActivityMovement;
-import com.jamieswhiteshirt.clothesline.hooks.impl.ActivityMovement;
-import com.jamieswhiteshirt.clothesline.hooks.impl.ActivityMovementStorage;
-import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.fml.common.DummyModContainer;
 import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.ModMetadata;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 import java.util.Collections;
 
@@ -34,10 +28,5 @@ public class ClotheslineHooks extends DummyModContainer {
     public boolean registerBus(EventBus bus, LoadController controller) {
         bus.register(this);
         return true;
-    }
-
-    @Subscribe
-    public void preInit(FMLPreInitializationEvent evt) {
-        CapabilityManager.INSTANCE.register(IActivityMovement.class, new ActivityMovementStorage(), ActivityMovement::new);
     }
 }

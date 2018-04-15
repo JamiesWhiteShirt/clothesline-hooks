@@ -188,7 +188,7 @@ public class ClassTransformer implements IClassTransformer {
                                         methodNode.instructions.set(insnNode, new MethodInsnNode(
                                                 Opcodes.INVOKESTATIC,
                                             "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
-                                                "isActivityPreventingMovement",
+                                                "isUseItemMovementSlowed",
                                                 "(Lnet/minecraft/client/entity/EntityPlayerSP;)Z",
                                                 false
                                         ));
