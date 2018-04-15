@@ -23,30 +23,30 @@ public class ClassTransformer implements IClassTransformer {
                  * Adding unreplaceable blocks intersecting with the clotheslines would be extremely fragile.
                  */
                 return transformSingleMethod(
-                        basicClass,
-                        "func_190527_a",
-                        "mayPlace",
-                        "(Lnet/minecraft/block/Block;Lnet/minecraft/util/math/BlockPos;ZLnet/minecraft/util/EnumFacing;Lnet/minecraft/entity/Entity;)Z",
-                        methodNode -> {
-                            InsnList preInstructions = new InsnList();
-                            preInstructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                            preInstructions.add(new VarInsnNode(Opcodes.ALOAD, 1));
-                            preInstructions.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                            preInstructions.add(new MethodInsnNode(
-                                    Opcodes.INVOKESTATIC,
-                                "com/jamieswhiteshirt/clothesline/hooks/CommonHooks",
-                                    "onMayPlace",
-                                    "(Lnet/minecraft/world/World;Lnet/minecraft/block/Block;Lnet/minecraft/util/math/BlockPos;)Z",
-                                    false
-                            ));
-                            LabelNode labelNode = new LabelNode();
-                            preInstructions.add(new JumpInsnNode(Opcodes.IFEQ, labelNode));
-                            preInstructions.add(new InsnNode(Opcodes.ICONST_0));
-                            preInstructions.add(new InsnNode(Opcodes.IRETURN));
-                            preInstructions.add(labelNode);
+                    basicClass,
+                    "func_190527_a",
+                    "mayPlace",
+                    "(Lnet/minecraft/block/Block;Lnet/minecraft/util/math/BlockPos;ZLnet/minecraft/util/EnumFacing;Lnet/minecraft/entity/Entity;)Z",
+                    methodNode -> {
+                        InsnList preInstructions = new InsnList();
+                        preInstructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                        preInstructions.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                        preInstructions.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                        preInstructions.add(new MethodInsnNode(
+                            Opcodes.INVOKESTATIC,
+                            "com/jamieswhiteshirt/clothesline/hooks/CommonHooks",
+                            "onMayPlace",
+                            "(Lnet/minecraft/world/World;Lnet/minecraft/block/Block;Lnet/minecraft/util/math/BlockPos;)Z",
+                            false
+                        ));
+                        LabelNode labelNode = new LabelNode();
+                        preInstructions.add(new JumpInsnNode(Opcodes.IFEQ, labelNode));
+                        preInstructions.add(new InsnNode(Opcodes.ICONST_0));
+                        preInstructions.add(new InsnNode(Opcodes.IRETURN));
+                        preInstructions.add(labelNode);
 
-                            methodNode.instructions.insert(preInstructions);
-                        }
+                        methodNode.instructions.insert(preInstructions);
+                    }
                 );
             case "net.minecraft.client.renderer.EntityRenderer":
                 /*
@@ -55,28 +55,28 @@ public class ClassTransformer implements IClassTransformer {
                  * This hook is needed to reliably insert the potential clothesline or attachment the mouse may be over.
                  */
                 return transformSingleMethod(
-                        basicClass,
-                        "func_78473_a",
-                        "getMouseOver",
-                        "(F)V",
-                        methodNode -> {
-                            for (int i = 0; i < methodNode.instructions.size(); i++) {
-                                AbstractInsnNode insnNode = methodNode.instructions.get(i);
-                                if (insnNode.getOpcode() == Opcodes.RETURN) {
-                                    InsnList insnList = new InsnList();
-                                    insnList.add(new VarInsnNode(Opcodes.FLOAD, 1));
-                                    insnList.add(new MethodInsnNode(
-                                            Opcodes.INVOKESTATIC,
-                                        "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
-                                            "onGetMouseOver",
-                                            "(F)V",
-                                            false
-                                    ));
-                                    i += insnList.size();
-                                    methodNode.instructions.insertBefore(insnNode, insnList);
-                                }
+                    basicClass,
+                    "func_78473_a",
+                    "getMouseOver",
+                    "(F)V",
+                    methodNode -> {
+                        for (int i = 0; i < methodNode.instructions.size(); i++) {
+                            AbstractInsnNode insnNode = methodNode.instructions.get(i);
+                            if (insnNode.getOpcode() == Opcodes.RETURN) {
+                                InsnList insnList = new InsnList();
+                                insnList.add(new VarInsnNode(Opcodes.FLOAD, 1));
+                                insnList.add(new MethodInsnNode(
+                                    Opcodes.INVOKESTATIC,
+                                    "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
+                                    "onGetMouseOver",
+                                    "(F)V",
+                                    false
+                                ));
+                                i += insnList.size();
+                                methodNode.instructions.insertBefore(insnNode, insnList);
                             }
                         }
+                    }
                 );
             case "net.minecraft.client.renderer.RenderGlobal":
                 /*
@@ -86,37 +86,37 @@ public class ClassTransformer implements IClassTransformer {
                  * This hook allows rendering things right after tile entities are rendered.
                  */
                 return transformSingleMethod(
-                        basicClass,
-                        "func_180446_a",
-                        "renderEntities",
-                        "(Lnet/minecraft/entity/Entity;Lnet/minecraft/client/renderer/culling/ICamera;F)V",
-                        methodNode -> {
-                            for (int i = 0; i < methodNode.instructions.size(); i++) {
-                                AbstractInsnNode insnNode = methodNode.instructions.get(i);
-                                if (insnNode instanceof MethodInsnNode) {
-                                    MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
-                                    if (
-                                            mInsnNode.getOpcode() == Opcodes.INVOKESPECIAL &&
-                                            mInsnNode.owner.equals("net/minecraft/client/renderer/RenderGlobal") &&
-                                            equalsEither(mInsnNode.name, "func_180443_s", "preRenderDamagedBlocks") &&
-                                            mInsnNode.desc.equals("()V")
-                                    ) {
-                                        InsnList insnList = new InsnList();
-                                        insnList.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                                        insnList.add(new VarInsnNode(Opcodes.FLOAD, 3));
-                                        insnList.add(new MethodInsnNode(
-                                                Opcodes.INVOKESTATIC,
-                                            "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
-                                                "onRenderEntities",
-                                                "(Lnet/minecraft/client/renderer/culling/ICamera;F)V",
-                                                false
-                                        ));
-                                        i += insnList.size();
-                                        methodNode.instructions.insertBefore(insnNode, insnList);
-                                    }
+                    basicClass,
+                    "func_180446_a",
+                    "renderEntities",
+                    "(Lnet/minecraft/entity/Entity;Lnet/minecraft/client/renderer/culling/ICamera;F)V",
+                    methodNode -> {
+                        for (int i = 0; i < methodNode.instructions.size(); i++) {
+                            AbstractInsnNode insnNode = methodNode.instructions.get(i);
+                            if (insnNode instanceof MethodInsnNode) {
+                                MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
+                                if (
+                                    mInsnNode.getOpcode() == Opcodes.INVOKESPECIAL &&
+                                    mInsnNode.owner.equals("net/minecraft/client/renderer/RenderGlobal") &&
+                                    equalsEither(mInsnNode.name, "func_180443_s", "preRenderDamagedBlocks") &&
+                                    mInsnNode.desc.equals("()V")
+                                ) {
+                                    InsnList insnList = new InsnList();
+                                    insnList.add(new VarInsnNode(Opcodes.ALOAD, 2));
+                                    insnList.add(new VarInsnNode(Opcodes.FLOAD, 3));
+                                    insnList.add(new MethodInsnNode(
+                                        Opcodes.INVOKESTATIC,
+                                        "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
+                                        "onRenderEntities",
+                                        "(Lnet/minecraft/client/renderer/culling/ICamera;F)V",
+                                        false
+                                    ));
+                                    i += insnList.size();
+                                    methodNode.instructions.insertBefore(insnNode, insnList);
                                 }
                             }
                         }
+                    }
                 );
             case "net.minecraft.client.multiplayer.PlayerControllerMP":
                 /*
@@ -129,39 +129,39 @@ public class ClassTransformer implements IClassTransformer {
                  * This mirrors how the client tells the server which block it is interacting in onItemUse.
                  */
                 return transformSingleMethod(
-                        basicClass,
-                        "func_78766_c",
-                        "onStoppedUsingItem",
-                        "(Lnet/minecraft/entity/player/EntityPlayer;)V",
-                        methodNode -> {
-                            for (int i = 0; i < methodNode.instructions.size(); i++) {
-                                AbstractInsnNode insnNode = methodNode.instructions.get(i);
-                                if (insnNode instanceof MethodInsnNode) {
-                                    MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
-                                    if (
-                                            mInsnNode.getOpcode() == Opcodes.INVOKESPECIAL &&
-                                            mInsnNode.owner.equals("net/minecraft/client/multiplayer/PlayerControllerMP") &&
-                                            equalsEither(mInsnNode.name, "func_78750_j", "syncCurrentPlayItem") &&
-                                            mInsnNode.desc.equals("()V")
-                                    ) {
-                                        InsnList insnList = new InsnList();
-                                        insnList.add(new MethodInsnNode(
-                                                Opcodes.INVOKESTATIC,
-                                            "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
-                                                "onStoppedUsingItem",
-                                                "()Z",
-                                                false
-                                        ));
-                                        LabelNode continueLabel = new LabelNode();
-                                        insnList.add(new JumpInsnNode(Opcodes.IFEQ, continueLabel));
-                                        insnList.add(new InsnNode(Opcodes.RETURN));
-                                        insnList.add(continueLabel);
-                                        i += insnList.size();
-                                        methodNode.instructions.insert(insnNode, insnList);
-                                    }
+                    basicClass,
+                    "func_78766_c",
+                    "onStoppedUsingItem",
+                    "(Lnet/minecraft/entity/player/EntityPlayer;)V",
+                    methodNode -> {
+                        for (int i = 0; i < methodNode.instructions.size(); i++) {
+                            AbstractInsnNode insnNode = methodNode.instructions.get(i);
+                            if (insnNode instanceof MethodInsnNode) {
+                                MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
+                                if (
+                                    mInsnNode.getOpcode() == Opcodes.INVOKESPECIAL &&
+                                    mInsnNode.owner.equals("net/minecraft/client/multiplayer/PlayerControllerMP") &&
+                                    equalsEither(mInsnNode.name, "func_78750_j", "syncCurrentPlayItem") &&
+                                    mInsnNode.desc.equals("()V")
+                                ) {
+                                    InsnList insnList = new InsnList();
+                                    insnList.add(new MethodInsnNode(
+                                        Opcodes.INVOKESTATIC,
+                                        "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
+                                        "onStoppedUsingItem",
+                                        "()Z",
+                                        false
+                                    ));
+                                    LabelNode continueLabel = new LabelNode();
+                                    insnList.add(new JumpInsnNode(Opcodes.IFEQ, continueLabel));
+                                    insnList.add(new InsnNode(Opcodes.RETURN));
+                                    insnList.add(continueLabel);
+                                    i += insnList.size();
+                                    methodNode.instructions.insert(insnNode, insnList);
                                 }
                             }
                         }
+                    }
                 );
             case "net.minecraft.client.entity.EntityPlayerSP":
                 /*
@@ -170,32 +170,32 @@ public class ClassTransformer implements IClassTransformer {
                  * This hooks adds a reliable way to bypass the slowdown for specific items.
                  */
                 return transformSingleMethod(
-                        basicClass,
-                        "func_70636_d",
-                        "onLivingUpdate",
-                        "()V",
-                        methodNode -> {
-                            for (int i = 0; i < methodNode.instructions.size(); i++) {
-                                AbstractInsnNode insnNode = methodNode.instructions.get(i);
-                                if (insnNode instanceof MethodInsnNode) {
-                                    MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
-                                    if (
-                                            mInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL &&
-                                            mInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP") &&
-                                            equalsEither(mInsnNode.name, "func_184587_cr", "isHandActive") &&
-                                            mInsnNode.desc.equals("()Z")
-                                    ) {
-                                        methodNode.instructions.set(insnNode, new MethodInsnNode(
-                                                Opcodes.INVOKESTATIC,
-                                            "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
-                                                "isUseItemMovementSlowed",
-                                                "(Lnet/minecraft/client/entity/EntityPlayerSP;)Z",
-                                                false
-                                        ));
-                                    }
+                    basicClass,
+                    "func_70636_d",
+                    "onLivingUpdate",
+                    "()V",
+                    methodNode -> {
+                        for (int i = 0; i < methodNode.instructions.size(); i++) {
+                            AbstractInsnNode insnNode = methodNode.instructions.get(i);
+                            if (insnNode instanceof MethodInsnNode) {
+                                MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
+                                if (
+                                    mInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL &&
+                                    mInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP") &&
+                                    equalsEither(mInsnNode.name, "func_184587_cr", "isHandActive") &&
+                                    mInsnNode.desc.equals("()Z")
+                                ) {
+                                    methodNode.instructions.set(insnNode, new MethodInsnNode(
+                                        Opcodes.INVOKESTATIC,
+                                        "com/jamieswhiteshirt/clothesline/hooks/ClientHooks",
+                                        "isUseItemMovementSlowed",
+                                        "(Lnet/minecraft/client/entity/EntityPlayerSP;)Z",
+                                        false
+                                    ));
                                 }
                             }
                         }
+                    }
                 );
         }
         return basicClass;
