@@ -2,6 +2,7 @@ package com.jamieswhiteshirt.clothesline.hooks.plugin;
 
 import com.jamieswhiteshirt.clothesline.hooks.SafeClassWriter;
 import net.minecraft.launchwrapper.IClassTransformer;
+import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -24,8 +25,8 @@ public class ClassTransformer implements IClassTransformer {
                  */
                 return transformSingleMethod(
                     basicClass,
-                    "func_190527_a",
-                    "mayPlace",
+                    "net/minecraft/world/World",
+                    "func_190527_a", // mayPlace
                     "(Lnet/minecraft/block/Block;Lnet/minecraft/util/math/BlockPos;ZLnet/minecraft/util/EnumFacing;Lnet/minecraft/entity/Entity;)Z",
                     methodNode -> {
                         InsnList preInstructions = new InsnList();
@@ -56,8 +57,8 @@ public class ClassTransformer implements IClassTransformer {
                  */
                 return transformSingleMethod(
                     basicClass,
-                    "func_78473_a",
-                    "getMouseOver",
+                    "net/minecraft/client/renderer/EntityRenderer",
+                    "func_78473_a", // getMouseOver
                     "(F)V",
                     methodNode -> {
                         for (int i = 0; i < methodNode.instructions.size(); i++) {
@@ -87,8 +88,8 @@ public class ClassTransformer implements IClassTransformer {
                  */
                 return transformSingleMethod(
                     basicClass,
-                    "func_180446_a",
-                    "renderEntities",
+                    "net/minecraft/client/renderer/RenderGlobal",
+                    "func_180446_a", // renderEntities
                     "(Lnet/minecraft/entity/Entity;Lnet/minecraft/client/renderer/culling/ICamera;F)V",
                     methodNode -> {
                         for (int i = 0; i < methodNode.instructions.size(); i++) {
@@ -97,9 +98,7 @@ public class ClassTransformer implements IClassTransformer {
                                 MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                                 if (
                                     mInsnNode.getOpcode() == Opcodes.INVOKESPECIAL &&
-                                    mInsnNode.owner.equals("net/minecraft/client/renderer/RenderGlobal") &&
-                                    equalsEither(mInsnNode.name, "func_180443_s", "preRenderDamagedBlocks") &&
-                                    mInsnNode.desc.equals("()V")
+                                    matches(mInsnNode, "net/minecraft/client/renderer/RenderGlobal", "func_180443_s", "()V") // preRenderDamagedBlocks
                                 ) {
                                     InsnList insnList = new InsnList();
                                     insnList.add(new VarInsnNode(Opcodes.ALOAD, 2));
@@ -130,8 +129,8 @@ public class ClassTransformer implements IClassTransformer {
                  */
                 return transformSingleMethod(
                     basicClass,
-                    "func_78766_c",
-                    "onStoppedUsingItem",
+                    "net/minecraft/client/multiplayer/PlayerControllerMP",
+                    "func_78766_c", // onStoppedUsingItem
                     "(Lnet/minecraft/entity/player/EntityPlayer;)V",
                     methodNode -> {
                         for (int i = 0; i < methodNode.instructions.size(); i++) {
@@ -140,9 +139,7 @@ public class ClassTransformer implements IClassTransformer {
                                 MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                                 if (
                                     mInsnNode.getOpcode() == Opcodes.INVOKESPECIAL &&
-                                    mInsnNode.owner.equals("net/minecraft/client/multiplayer/PlayerControllerMP") &&
-                                    equalsEither(mInsnNode.name, "func_78750_j", "syncCurrentPlayItem") &&
-                                    mInsnNode.desc.equals("()V")
+                                    matches(mInsnNode, "net/minecraft/client/multiplayer/PlayerControllerMP", "func_78750_j", "()V") // syncCurrentPlayItem
                                 ) {
                                     InsnList insnList = new InsnList();
                                     insnList.add(new MethodInsnNode(
@@ -171,8 +168,8 @@ public class ClassTransformer implements IClassTransformer {
                  */
                 return transformSingleMethod(
                     basicClass,
-                    "func_70636_d",
-                    "onLivingUpdate",
+                    "net/minecraft/client/entity/EntityPlayerSP",
+                    "func_70636_d", // onLivingUpdate
                     "()V",
                     methodNode -> {
                         for (int i = 0; i < methodNode.instructions.size(); i++) {
@@ -181,9 +178,7 @@ public class ClassTransformer implements IClassTransformer {
                                 MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                                 if (
                                     mInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL &&
-                                    mInsnNode.owner.equals("net/minecraft/client/entity/EntityPlayerSP") &&
-                                    equalsEither(mInsnNode.name, "func_184587_cr", "isHandActive") &&
-                                    mInsnNode.desc.equals("()Z")
+                                    matches(mInsnNode, "net/minecraft/client/entity/EntityPlayerSP", "func_184587_cr", "()Z") // isHandActive
                                 ) {
                                     methodNode.instructions.set(insnNode, new MethodInsnNode(
                                         Opcodes.INVOKESTATIC,
@@ -201,8 +196,9 @@ public class ClassTransformer implements IClassTransformer {
         return basicClass;
     }
 
-    private boolean equalsEither(String name, String srgName, String mcpName) {
-        return name.equals(srgName) || name.equals(mcpName);
+    private boolean matches(MethodInsnNode insnNode, String owner, String srgName, String desc) {
+        String name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(owner, srgName, desc);
+        return insnNode.owner.equals(owner) && insnNode.name.equals(name) && insnNode.desc.equals(desc);
     }
 
     private byte[] transformClass(byte[] basicClass, Consumer<ClassNode> transformer) {
@@ -217,10 +213,11 @@ public class ClassTransformer implements IClassTransformer {
         return writer.toByteArray();
     }
 
-    private byte[] transformSingleMethod(byte[] basicClass, String srgName, String mcpName, String desc, Consumer<MethodNode> transformer) {
+    private byte[] transformSingleMethod(byte[] basicClass, String owner, String srgName, String desc, Consumer<MethodNode> transformer) {
+        String name = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(owner, srgName, desc);
         return transformClass(basicClass, classNode -> {
             for (MethodNode methodNode : classNode.methods) {
-                if (equalsEither(methodNode.name, srgName, mcpName) && methodNode.desc.equals(desc)) {
+                if (methodNode.name.equals(name) && methodNode.desc.equals(desc)) {
                     transformer.accept(methodNode);
                 }
             }
