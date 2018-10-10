@@ -17,13 +17,13 @@ import java.util.Map;
 public class FMLLoadingPlugin implements IFMLLoadingPlugin {
     private static final String CERTIFICATE_FINGERPRINT = "3bae2d07b93a5971335cb2de15230c19c103db32";
 
-    private final Logger logger = LogManager.getLogger("clothesline-hooks");
+    public static final Logger LOGGER = LogManager.getLogger("clothesline-hooks");
 
     public FMLLoadingPlugin() {
         Certificate[] certificates = FMLLoadingPlugin.class.getProtectionDomain().getCodeSource().getCertificates();
         ImmutableList<String> certList = CertificateHelper.getFingerprints(certificates);
         if (!certList.contains(CERTIFICATE_FINGERPRINT)) {
-            logger.error("Expecting signature {}, however there is no signature matching that description", CERTIFICATE_FINGERPRINT);
+            LOGGER.error("Expecting signature {}, however there is no signature matching that description", CERTIFICATE_FINGERPRINT);
         }
     }
 

@@ -30,6 +30,19 @@ minecraft {
     mappings = "stable_39"
 }
 
+repositories {
+    jcenter()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.2.+'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.2.+'
+}
+
+test {
+    useJUnitPlatform()
+}
+
 jar {
     manifest {
         attributes([
