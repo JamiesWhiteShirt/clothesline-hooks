@@ -12,13 +12,10 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 
 version = "1.12.2-1.0.0.0-SNAPSHOT"
-group = "com.jamieswhiteshirt" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+group = "com.jamieswhiteshirt"
 archivesBaseName = "clothesline-hooks"
 
-sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
-}
+sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
 
 
 minecraft {
