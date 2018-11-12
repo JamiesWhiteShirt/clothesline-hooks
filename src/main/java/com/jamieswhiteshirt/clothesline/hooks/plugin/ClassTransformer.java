@@ -1,7 +1,6 @@
 package com.jamieswhiteshirt.clothesline.hooks.plugin;
 
 import net.minecraft.launchwrapper.IClassTransformer;
-import net.minecraft.launchwrapper.Launch;
 
 public class ClassTransformer implements IClassTransformer {
     @Override
@@ -9,7 +8,7 @@ public class ClassTransformer implements IClassTransformer {
         BytesTransformer transformer = Transformers.transformers.get(transformedName);
         if (transformer != null) {
             try {
-                return transformer.transform(Launch.classLoader, basicClass);
+                return transformer.transform(basicClass);
             } catch (TransformException e) {
                 FMLLoadingPlugin.LOGGER.error("Failed to transform class " + transformedName, e);
             }

@@ -42,6 +42,9 @@ public class Transformers {
                 preInstructions.add(new InsnNode(Opcodes.ICONST_0));
                 preInstructions.add(new InsnNode(Opcodes.IRETURN));
                 preInstructions.add(labelNode);
+                // We're branching to the above label node
+                // The frame will be the same here, so add an F_SAME FrameNode to satisfy the class verifier
+                preInstructions.add(new FrameNode(Opcodes.F_SAME, 0, null, 0, null));
 
                 methodNode.instructions.insert(preInstructions);
             }
@@ -58,8 +61,8 @@ public class Transformers {
             "(F)V",
             methodNode -> {
                 boolean success = false;
-                for (int i = 0; i < methodNode.instructions.size(); i++) {
-                    AbstractInsnNode insnNode = methodNode.instructions.get(i);
+                AbstractInsnNode insnNode = methodNode.instructions.getFirst();
+                while (insnNode != null) {
                     if (insnNode.getOpcode() == Opcodes.RETURN) {
                         InsnList insnList = new InsnList();
                         insnList.add(new VarInsnNode(Opcodes.FLOAD, 1));
@@ -70,10 +73,10 @@ public class Transformers {
                             "(F)V",
                             false
                         ));
-                        i += insnList.size();
                         methodNode.instructions.insertBefore(insnNode, insnList);
                         success = true;
                     }
+                    insnNode = insnNode.getNext();
                 }
 
                 if (!success) throw new TransformException("No match found");
@@ -91,8 +94,8 @@ public class Transformers {
             "func_180446_a", // renderEntities
             "(Lnet/minecraft/entity/Entity;Lnet/minecraft/client/renderer/culling/ICamera;F)V",
             methodNode -> {
-                for (int i = 0; i < methodNode.instructions.size(); i++) {
-                    AbstractInsnNode insnNode = methodNode.instructions.get(i);
+                AbstractInsnNode insnNode = methodNode.instructions.getFirst();
+                while (insnNode != null) {
                     if (insnNode instanceof MethodInsnNode) {
                         MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                         if (
@@ -109,11 +112,11 @@ public class Transformers {
                                 "(Lnet/minecraft/client/renderer/culling/ICamera;F)V",
                                 false
                             ));
-                            i += insnList.size();
                             methodNode.instructions.insertBefore(insnNode, insnList);
                             return;
                         }
                     }
+                    insnNode = insnNode.getNext();
                 }
 
                 throw new TransformException("No match found");
@@ -134,8 +137,8 @@ public class Transformers {
             "func_78766_c", // onStoppedUsingItem
             "(Lnet/minecraft/entity/player/EntityPlayer;)V",
             methodNode -> {
-                for (int i = 0; i < methodNode.instructions.size(); i++) {
-                    AbstractInsnNode insnNode = methodNode.instructions.get(i);
+                AbstractInsnNode insnNode = methodNode.instructions.getFirst();
+                while (insnNode != null) {
                     if (insnNode instanceof MethodInsnNode) {
                         MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                         if (
@@ -154,11 +157,14 @@ public class Transformers {
                             insnList.add(new JumpInsnNode(Opcodes.IFEQ, continueLabel));
                             insnList.add(new InsnNode(Opcodes.RETURN));
                             insnList.add(continueLabel);
-                            i += insnList.size();
+                            // We're branching to the above label node
+                            // The frame will be the same here, so add an F_SAME FrameNode to satisfy the class verifier
+                            insnList.add(new FrameNode(Opcodes.F_SAME, 0, null, 0, null));
                             methodNode.instructions.insert(insnNode, insnList);
                             return;
                         }
                     }
+                    insnNode = insnNode.getNext();
                 }
 
                 throw new TransformException("No match found");
@@ -175,8 +181,8 @@ public class Transformers {
             "func_70636_d", // onLivingUpdate
             "()V",
             methodNode -> {
-                for (int i = 0; i < methodNode.instructions.size(); i++) {
-                    AbstractInsnNode insnNode = methodNode.instructions.get(i);
+                AbstractInsnNode insnNode = methodNode.instructions.getFirst();
+                while (insnNode != null) {
                     if (insnNode instanceof MethodInsnNode) {
                         MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                         if (
@@ -193,6 +199,7 @@ public class Transformers {
                             return;
                         }
                     }
+                    insnNode = insnNode.getNext();
                 }
 
                 throw new TransformException("No match found");
@@ -206,14 +213,14 @@ public class Transformers {
     }
 
     private static BytesTransformer classTransformer(ClassNodeTransformer transformer) {
-        return (classLoader, basicClass) -> {
+        return basicClass -> {
             ClassReader reader = new ClassReader(basicClass);
             ClassNode classNode = new ClassNode();
             reader.accept(classNode, 0);
 
             transformer.transform(classNode);
 
-            ClassWriter writer = new SafeClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES, classLoader);
+            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
             classNode.accept(writer);
             return writer.toByteArray();
         };
