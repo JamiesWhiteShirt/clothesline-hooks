@@ -99,8 +99,7 @@ public class Transformers {
                     if (insnNode instanceof MethodInsnNode) {
                         MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                         if (
-                            mInsnNode.getOpcode() == Opcodes.INVOKESPECIAL &&
-                                matches(mInsnNode, "net/minecraft/client/renderer/RenderGlobal", "func_180443_s", "()V") // preRenderDamagedBlocks
+                            matches(mInsnNode, "net/minecraft/client/renderer/RenderGlobal", "func_180443_s", "()V") // preRenderDamagedBlocks
                         ) {
                             InsnList insnList = new InsnList();
                             insnList.add(new VarInsnNode(Opcodes.ALOAD, 2));
@@ -142,8 +141,7 @@ public class Transformers {
                     if (insnNode instanceof MethodInsnNode) {
                         MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                         if (
-                            mInsnNode.getOpcode() == Opcodes.INVOKESPECIAL &&
-                                matches(mInsnNode, "net/minecraft/client/multiplayer/PlayerControllerMP", "func_78750_j", "()V") // syncCurrentPlayItem
+                            matches(mInsnNode, "net/minecraft/client/multiplayer/PlayerControllerMP", "func_78750_j", "()V") // syncCurrentPlayItem
                         ) {
                             InsnList insnList = new InsnList();
                             insnList.add(new MethodInsnNode(
@@ -186,8 +184,7 @@ public class Transformers {
                     if (insnNode instanceof MethodInsnNode) {
                         MethodInsnNode mInsnNode = (MethodInsnNode) insnNode;
                         if (
-                            mInsnNode.getOpcode() == Opcodes.INVOKEVIRTUAL &&
-                                matches(mInsnNode, "net/minecraft/client/entity/EntityPlayerSP", "func_184587_cr", "()Z") // isHandActive
+                            matches(mInsnNode, "net/minecraft/client/entity/EntityPlayerSP", "func_184587_cr", "()Z") // isHandActive
                         ) {
                             methodNode.instructions.set(insnNode, new MethodInsnNode(
                                 Opcodes.INVOKESTATIC,
